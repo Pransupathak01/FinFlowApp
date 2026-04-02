@@ -1,4 +1,6 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { getReconciliationList, batchMatchItems, resolveSingleItem } from '../../../services/reconService';
+import { Alert } from 'react-native';
 
 export type ReconStatus = 'unmatched' | 'matched' | 'disputed';
 
@@ -7,7 +9,7 @@ export interface ReconItem {
   txTitle: string;
   txAmount: number;
   txDate: string;
-  source: string; // e.g. "HDFC Bank Statement"
+  source: string;
   bankAmount: number;
   bankDate: string;
   status: ReconStatus;
@@ -15,65 +17,32 @@ export interface ReconItem {
   notes?: string;
 }
 
-const MOCK_DATA: ReconItem[] = [
-  {
-    id: 'r1',
-    txTitle: 'Amazon Web Services',
-    txAmount: 14500,
-    txDate: '2026-03-28',
-    source: 'ICICI Current A/c',
-    bankAmount: 14500,
-    bankDate: '2026-03-29',
-    status: 'unmatched',
-    mismatchReason: 'Date mismatch (1 day delay)',
-  },
-  {
-    id: 'r2',
-    txTitle: 'Vendor Payout - Suresh',
-    txAmount: 8200,
-    txDate: '2026-03-30',
-    source: 'HDFC Statement #12',
-    bankAmount: 8000,
-    bankDate: '2026-03-30',
-    status: 'unmatched',
-    mismatchReason: 'Amount mismatch (Bank: ₹8,000, TX: ₹8,200)',
-  },
-  {
-    id: 'r3',
-    txTitle: 'Office Rent - April',
-    txAmount: 50000,
-    txDate: '2026-04-01',
-    source: 'ICICI Current A/c',
-    bankAmount: 50000,
-    bankDate: '2026-04-01',
-    status: 'matched',
-  },
-  {
-    id: 'r4',
-    txTitle: 'Client Payout - Acme',
-    txAmount: 24500,
-    txDate: '2026-03-31',
-    source: 'Bank Feed #4',
-    bankAmount: 24500,
-    bankDate: '2026-03-31',
-    status: 'unmatched',
-  },
-  {
-    id: 'r5',
-    txTitle: 'TDS Q4 Payment',
-    txAmount: 45000,
-    txDate: '2026-03-15',
-    source: 'HDFC Statement #11',
-    bankAmount: 45000,
-    bankDate: '2026-03-15',
-    status: 'matched',
-    notes: 'Reconciled automatically by system',
-  },
-];
-
 export function useReconciliation() {
-  const [data, setData] = useState<ReconItem[]>(MOCK_DATA);
+  const [data, setData] = useState<ReconItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // ── Fetching Data
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      // Fetching both for convenience (or can fetch on tab switch)
+      const [u, m] = await Promise.all([
+        getReconciliationList('unmatched'),
+        getReconciliationList('matched'),
+      ]);
+      setData([...u, ...m]);
+    } catch (err: any) {
+      console.error('[Recon Error]', err);
+      Alert.alert('Load Failed', 'Could not fetch reconciliation data.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // ── Filters
   const unmatched = useMemo(() => data.filter(i => i.status === 'unmatched'), [data]);
@@ -98,29 +67,43 @@ export function useReconciliation() {
   }, []);
 
   // ── Actions
-  const matchItems = useCallback((ids: string[]) => {
-    setData(prev => prev.map(item => 
-      ids.includes(item.id) ? { ...item, status: 'matched', mismatchReason: undefined } : item
-    ));
-    setSelectedIds(new Set());
-  }, []);
+  const matchItems = useCallback(async (ids: string[]) => {
+    try {
+      setLoading(true);
+      await batchMatchItems(ids);
+      await fetchData(); // Refresh
+      setSelectedIds(new Set());
+    } catch (err: any) {
+      Alert.alert('Match failed', err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchData]);
 
-  const resolveDispute = useCallback((id: string, notes?: string) => {
-    setData(prev => prev.map(item => 
-      item.id === id ? { ...item, status: 'matched', notes, mismatchReason: undefined } : item
-    ));
-  }, []);
+  const resolveDispute = useCallback(async (id: string, notes?: string) => {
+    try {
+      setLoading(true);
+      await resolveSingleItem(id, notes);
+      await fetchData(); // Refresh
+    } catch (err: any) {
+      Alert.alert('Resolve failed', err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchData]);
 
   const addNote = useCallback((id: string, notes: string) => {
-    setData(prev => prev.map(item => 
-      item.id === id ? { ...item, notes } : item
-    ));
-  }, []);
+    // Currently adding note is handled in ResolveSingle, but if just adding a note:
+    // We can use resolveSingleItem for now.
+    resolveDispute(id, notes);
+  }, [resolveDispute]);
 
   return {
     unmatched,
     matched,
     selectedIds,
+    loading,
+    fetchData,
     toggleSelect,
     selectAll,
     clearSelection,
@@ -129,3 +112,4 @@ export function useReconciliation() {
     addNote,
   };
 }
+

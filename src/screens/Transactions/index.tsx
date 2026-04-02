@@ -83,6 +83,7 @@ export default function TransactionsScreen() {
     filters, updateFilters, resetFilters,
     activeFilterCount,
     transactions,
+    meta,
     loading,
     categories,
   } = useTransactions();
@@ -117,13 +118,6 @@ export default function TransactionsScreen() {
     [],
   );
 
-  // Summary counts
-  const summary = useMemo(() => ({
-    total: transactions.length,
-    success: transactions.filter(t => t.status === 'success').length,
-    failed: transactions.filter(t => t.status === 'failed').length,
-  }), [transactions]);
-
   return (
     <View style={[styles.root, { paddingTop: insets.top, backgroundColor: colors.bgBase }]}>
       <StatusBar
@@ -135,13 +129,14 @@ export default function TransactionsScreen() {
       <View style={styles.header}>
         <View>
           <Text style={[styles.heading, { color: colors.textPrimary }]}>Transactions</Text>
-          {!loading && (
+          {(!loading && meta) && (
             <Text style={[styles.subheading, { color: colors.textMuted }]}>
-              {summary.total} results · {summary.success} success · {summary.failed} failed
+              {meta.totalRecords} results · {meta.summary.totalSuccess} success · {meta.summary.totalFailed} failed
             </Text>
           )}
         </View>
       </View>
+
 
       {/* ── Search + Filter ── */}
       <SearchBar

@@ -62,7 +62,7 @@ export default function DashboardScreen() {
         }
       >
         {/* ── Pending Reconciliation Banner ────────────────── */}
-        {loading ? (
+        {(loading || !data) ? (
           <SkeletonCard />
         ) : (
           <TouchableOpacity
@@ -78,8 +78,12 @@ export default function DashboardScreen() {
                 <MaterialCommunityIcons name="scale-balance" size={18} color={colors.pendingFg} />
               </View>
               <View>
-                <Text style={[styles.reconCount, { color: colors.pendingFg }]}>{data!.pendingReconciliation} pending</Text>
-                <Text style={[styles.reconSub, { color: colors.pendingFg + 'AA' }]}>Reconciliation items need review</Text>
+                <Text style={[styles.reconCount, { color: colors.pendingFg }]}>
+                  {(data?.pendingReconciliation || 0)} pending
+                </Text>
+                <Text style={[styles.reconSub, { color: colors.pendingFg + 'AA' }]}>
+                  Reconciliation items need review
+                </Text>
               </View>
             </View>
             <MaterialCommunityIcons name="chevron-right" size={20} color={colors.pendingFg} />
@@ -88,7 +92,7 @@ export default function DashboardScreen() {
 
         {/* ── Stat Cards ───────────────────────────────────── */}
         <View style={styles.statsRow}>
-          {loading ? (
+          {(loading || !data) ? (
             <>
               <SkeletonCard />
               <View style={{ width: 12 }} />
@@ -98,7 +102,7 @@ export default function DashboardScreen() {
             <>
               <StatCard
                 label="Today"
-                value={data!.todayTotal.toLocaleString()}
+                value={(data?.todayTotal || 0).toLocaleString()}
                 sub="transactions"
                 icon="lightning-bolt"
                 iconColor="#6EE7B7"
@@ -108,7 +112,7 @@ export default function DashboardScreen() {
               <View style={{ width: 12 }} />
               <StatCard
                 label="Weekly"
-                value={data!.weeklyTotal.toLocaleString()}
+                value={(data?.weeklyTotal || 0).toLocaleString()}
                 sub="transactions"
                 icon="calendar-week"
                 iconColor="#93C5FD"
@@ -121,7 +125,7 @@ export default function DashboardScreen() {
 
         {/* ── Success / Failed Mini Cards ───────────────────── */}
         <View style={styles.statsRow}>
-          {loading ? (
+          {(loading || !data) ? (
             <>
               <SkeletonCard />
               <View style={{ width: 12 }} />
@@ -131,7 +135,7 @@ export default function DashboardScreen() {
             <>
               <StatCard
                 label="Success"
-                value={data!.todaySuccess.toLocaleString()}
+                value={(data?.todaySuccess || 0).toLocaleString()}
                 icon="check-circle-outline"
                 iconColor={colors.successFg}
                 iconBg={colors.successBg}
@@ -139,7 +143,7 @@ export default function DashboardScreen() {
               <View style={{ width: 12 }} />
               <StatCard
                 label="Failed"
-                value={data!.todayFailed.toLocaleString()}
+                value={(data?.todayFailed || 0).toLocaleString()}
                 icon="alert-circle-outline"
                 iconColor={colors.failedFg}
                 iconBg={colors.failedBg}
@@ -150,22 +154,23 @@ export default function DashboardScreen() {
         </View>
 
         {/* ── Chart ─────────────────────────── */}
-        {loading ? (
+        {(loading || !data) ? (
           <SkeletonChart />
         ) : (
-          <TransactionChart data={data!.chartData} />
+          <TransactionChart data={data?.chartData || []} />
         )}
 
         {/* ── Recent Activity ──────────────────────────────── */}
-        {loading ? (
+        {(loading || !data) ? (
           <View style={[styles.activityCard, { backgroundColor: colors.bgCard }]}>
             <SkeletonActivity />
             <SkeletonActivity />
             <SkeletonActivity />
           </View>
         ) : (
-          <RecentActivity data={data!.recentActivity} />
+          <RecentActivity data={data?.recentActivity || []} />
         )}
+
       </ScrollView>
     </View>
   );
