@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
 import { useDashboard } from './hooks/useDashboard';
 import { StatCard } from './components/StatCard';
 import { TransactionChart } from './components/TransactionChart';
@@ -19,24 +20,31 @@ import {
   SkeletonChart,
   SkeletonActivity,
 } from './components/SkeletonLoader';
+import { useTheme } from '../../store/ThemeContext';
 
 export default function DashboardScreen() {
+  const navigation = useNavigation<any>();
   const { loading, data, refresh } = useDashboard();
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
+
 
   return (
-    <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B1120" />
+    <View style={[styles.root, { backgroundColor: colors.bgBase }]}>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.bgBase}
+      />
 
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 12, backgroundColor: colors.bgBase }]}>
         <View>
-          <Text style={styles.greeting}>Good Morning</Text>
-          <Text style={styles.orgName}>FinFlow Dashboard</Text>
+          <Text style={[styles.greeting, { color: colors.textMuted }]}>Good Morning</Text>
+          <Text style={[styles.orgName, { color: colors.textPrimary }]}>FinFlow Dashboard</Text>
         </View>
-        <TouchableOpacity style={styles.notifBtn} activeOpacity={0.8}>
-          <MaterialCommunityIcons name="bell-outline" size={22} color="#C9D5E8" />
-          <View style={styles.badge} />
+        <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.bgCard }]} activeOpacity={0.8}>
+          <MaterialCommunityIcons name="bell-outline" size={22} color={colors.textSecondary} />
+          <View style={[styles.badge, { backgroundColor: colors.badgeBg, borderColor: colors.bgCard }]} />
         </TouchableOpacity>
       </View>
 
@@ -48,8 +56,8 @@ export default function DashboardScreen() {
           <RefreshControl
             refreshing={loading}
             onRefresh={refresh}
-            tintColor="#4F8EF7"
-            colors={['#4F8EF7']}
+            tintColor={colors.accent}
+            colors={[colors.accent]}
           />
         }
       >
@@ -57,17 +65,24 @@ export default function DashboardScreen() {
         {loading ? (
           <SkeletonCard />
         ) : (
-          <TouchableOpacity style={styles.reconBanner} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={[
+              styles.reconBanner,
+              { backgroundColor: colors.pendingBg, borderColor: colors.pendingFg + '40' },
+            ]}
+            activeOpacity={0.85}
+            onPress={() => navigation.navigate('Reconciliation')}
+          >
             <View style={styles.reconLeft}>
-              <View style={styles.reconIcon}>
-                <MaterialCommunityIcons name="scale-balance" size={18} color="#FBBF24" />
+              <View style={[styles.reconIcon, { backgroundColor: colors.pendingBg }]}>
+                <MaterialCommunityIcons name="scale-balance" size={18} color={colors.pendingFg} />
               </View>
               <View>
-                <Text style={styles.reconCount}>{data!.pendingReconciliation} pending</Text>
-                <Text style={styles.reconSub}>Reconciliation items need review</Text>
+                <Text style={[styles.reconCount, { color: colors.pendingFg }]}>{data!.pendingReconciliation} pending</Text>
+                <Text style={[styles.reconSub, { color: colors.pendingFg + 'AA' }]}>Reconciliation items need review</Text>
               </View>
             </View>
-            <MaterialCommunityIcons name="chevron-right" size={20} color="#FBBF24" />
+            <MaterialCommunityIcons name="chevron-right" size={20} color={colors.pendingFg} />
           </TouchableOpacity>
         )}
 
@@ -87,7 +102,7 @@ export default function DashboardScreen() {
                 sub="transactions"
                 icon="lightning-bolt"
                 iconColor="#6EE7B7"
-                iconBg="#0D2E22"
+                iconBg={colors.successBg}
                 trend={{ value: '+12%', up: true }}
               />
               <View style={{ width: 12 }} />
@@ -97,7 +112,7 @@ export default function DashboardScreen() {
                 sub="transactions"
                 icon="calendar-week"
                 iconColor="#93C5FD"
-                iconBg="#0D1E3B"
+                iconBg={colors.bgMuted}
                 trend={{ value: '+8%', up: true }}
               />
             </>
@@ -118,16 +133,16 @@ export default function DashboardScreen() {
                 label="Success"
                 value={data!.todaySuccess.toLocaleString()}
                 icon="check-circle-outline"
-                iconColor="#34D399"
-                iconBg="#0D2E1B"
+                iconColor={colors.successFg}
+                iconBg={colors.successBg}
               />
               <View style={{ width: 12 }} />
               <StatCard
                 label="Failed"
                 value={data!.todayFailed.toLocaleString()}
                 icon="alert-circle-outline"
-                iconColor="#F87171"
-                iconBg="#2E0D0D"
+                iconColor={colors.failedFg}
+                iconBg={colors.failedBg}
                 trend={{ value: '-3%', up: false }}
               />
             </>
@@ -143,7 +158,7 @@ export default function DashboardScreen() {
 
         {/* ── Recent Activity ──────────────────────────────── */}
         {loading ? (
-          <View style={styles.activityCard}>
+          <View style={[styles.activityCard, { backgroundColor: colors.bgCard }]}>
             <SkeletonActivity />
             <SkeletonActivity />
             <SkeletonActivity />
@@ -159,7 +174,6 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#0B1120',
   },
   header: {
     flexDirection: 'row',
@@ -167,25 +181,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: '#0B1120',
   },
   greeting: {
     fontSize: 13,
-    color: '#7A8499',
     fontWeight: '500',
     marginBottom: 2,
   },
   orgName: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#FFFFFF',
     letterSpacing: -0.5,
   },
-  notifBtn: {
+  iconBtn: {
     width: 42,
     height: 42,
     borderRadius: 12,
-    backgroundColor: '#111C2E',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -196,9 +206,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#F87171',
     borderWidth: 1.5,
-    borderColor: '#111C2E',
   },
   scroll: {
     flex: 1,
@@ -209,10 +217,8 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   reconBanner: {
-    backgroundColor: '#1C1A0D',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#3D3410',
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -227,25 +233,21 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#2E250D',
     alignItems: 'center',
     justifyContent: 'center',
   },
   reconCount: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FBBF24',
   },
   reconSub: {
     fontSize: 11,
-    color: '#7A6830',
     marginTop: 2,
   },
   statsRow: {
     flexDirection: 'row',
   },
   activityCard: {
-    backgroundColor: '#111C2E',
     borderRadius: 16,
     padding: 18,
   },

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import {
   VictoryBar,
   VictoryChart,
@@ -7,6 +7,9 @@ import {
   VictoryAxis,
   VictoryTooltip,
 } from 'victory-native';
+import { useTheme } from '../../../store/ThemeContext';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface ChartPoint { x: string; y: number; failed: number }
 
@@ -15,27 +18,30 @@ interface Props {
 }
 
 export function TransactionChart({ data }: Props) {
+  const { colors } = useTheme();
   const [view, setView] = useState<'today' | 'weekly'>('weekly');
 
   const displayData = view === 'today' ? data.slice(-1) : data;
-
   const successData = displayData.map(d => ({ x: d.x, y: d.y }));
   const failedData  = displayData.map(d => ({ x: d.x, y: d.failed }));
 
+  // SCREEN_WIDTH - 40 (dashboard horizontal padding) - 36 (card horizontal padding)
+  const chartWidth = SCREEN_WIDTH - 76;
+
   return (
-    <View style={s.card}>
+    <View style={[s.card, { backgroundColor: colors.bgCard }]}>
       {/* Header */}
       <View style={s.header}>
-        <Text style={s.title}>Transactions</Text>
-        <View style={s.toggle}>
+        <Text style={[s.title, { color: colors.textPrimary }]}>Transactions</Text>
+        <View style={[s.toggle, { backgroundColor: colors.bgBase }]}>
           {(['today', 'weekly'] as const).map(t => (
             <TouchableOpacity
               key={t}
-              style={[s.pill, view === t && s.pillActive]}
+              style={[s.pill, view === t && { backgroundColor: colors.bgMuted }]}
               onPress={() => setView(t)}
               activeOpacity={0.8}
             >
-              <Text style={[s.pillText, view === t && s.pillTextActive]}>
+              <Text style={[s.pillText, { color: colors.textMuted }, view === t && { color: colors.accent }]}>
                 {t.charAt(0).toUpperCase() + t.slice(1)}
               </Text>
             </TouchableOpacity>
@@ -46,25 +52,26 @@ export function TransactionChart({ data }: Props) {
       {/* Legend */}
       <View style={s.legend}>
         <View style={s.legendItem}>
-          <View style={[s.dot, { backgroundColor: '#4F8EF7' }]} />
-          <Text style={s.legendText}>Success</Text>
+          <View style={[s.dot, { backgroundColor: colors.accent }]} />
+          <Text style={[s.legendText, { color: colors.textMuted }]}>Success</Text>
         </View>
         <View style={s.legendItem}>
-          <View style={[s.dot, { backgroundColor: '#F87171' }]} />
-          <Text style={s.legendText}>Failed</Text>
+          <View style={[s.dot, { backgroundColor: colors.failedFg }]} />
+          <Text style={[s.legendText, { color: colors.textMuted }]}>Failed</Text>
         </View>
       </View>
 
       {/* Chart */}
       <VictoryChart
+        width={chartWidth}
         height={180}
-        padding={{ top: 10, bottom: 30, left: 40, right: 16 }}
-        domainPadding={{ x: 20 }}
+        padding={{ top: 10, bottom: 30, left: 40, right: 10 }}
+        domainPadding={{ x: 25 }}
       >
         <VictoryAxis
           style={{
             axis: { stroke: 'transparent' },
-            tickLabels: { fill: '#4A5568', fontSize: 10, fontWeight: '500' },
+            tickLabels: { fill: colors.textMuted, fontSize: 10, fontWeight: '500' },
             grid: { stroke: 'transparent' },
           }}
         />
@@ -72,21 +79,21 @@ export function TransactionChart({ data }: Props) {
           dependentAxis
           style={{
             axis: { stroke: 'transparent' },
-            tickLabels: { fill: '#4A5568', fontSize: 10 },
-            grid: { stroke: '#1A2640', strokeDasharray: '4,4' },
+            tickLabels: { fill: colors.textMuted, fontSize: 10 },
+            grid: { stroke: colors.borderSep, strokeDasharray: '4,4' },
           }}
         />
-        <VictoryGroup offset={16}>
+        <VictoryGroup offset={10}>
           <VictoryBar
             data={successData}
             cornerRadius={{ top: 4 }}
-            style={{ data: { fill: '#4F8EF7', width: 12 } }}
+            style={{ data: { fill: colors.accent, width: 8 } }}
             labelComponent={<VictoryTooltip />}
           />
           <VictoryBar
             data={failedData}
             cornerRadius={{ top: 4 }}
-            style={{ data: { fill: '#F87171', width: 12 } }}
+            style={{ data: { fill: colors.failedFg, width: 8 } }}
             labelComponent={<VictoryTooltip />}
           />
         </VictoryGroup>
@@ -95,9 +102,9 @@ export function TransactionChart({ data }: Props) {
   );
 }
 
+
 const s = StyleSheet.create({
   card: {
-    backgroundColor: '#111C2E',
     borderRadius: 16,
     padding: 18,
     marginBottom: 16,
@@ -111,11 +118,9 @@ const s = StyleSheet.create({
   title: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
   },
   toggle: {
     flexDirection: 'row',
-    backgroundColor: '#0B1120',
     borderRadius: 8,
     padding: 3,
   },
@@ -124,16 +129,9 @@ const s = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 6,
   },
-  pillActive: {
-    backgroundColor: '#1E2D45',
-  },
   pillText: {
     fontSize: 11,
-    color: '#7A8499',
     fontWeight: '600',
-  },
-  pillTextActive: {
-    color: '#4F8EF7',
   },
   legend: {
     flexDirection: 'row',
@@ -152,6 +150,5 @@ const s = StyleSheet.create({
   },
   legendText: {
     fontSize: 11,
-    color: '#7A8499',
   },
 });

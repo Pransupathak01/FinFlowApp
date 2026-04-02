@@ -3,8 +3,9 @@ export type BottomTabParamList = {
   Transactions: undefined;
   Reconciliation: undefined;
   Alerts: undefined;
-  Settings: undefined;
+  Profile: undefined;
 };
+
 
 export type AuthStackParamList = {
   Login: undefined;

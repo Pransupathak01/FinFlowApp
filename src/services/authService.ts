@@ -8,6 +8,21 @@ export interface AuthUser {
   email: string;
   phone: string;
   role: string;
+  avatar?: string;
+  dateOfBirth?: string;
+  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+  kycStatus?: string;
+  address?: {
+    line1?: string;
+    city?: string;
+    pincode?: string;
+    country?: string;
+  };
+  wallet?: {
+    balance: number;
+    currency: string;
+    isActive: boolean;
+  };
 }
 
 export interface AuthResponse {
@@ -28,15 +43,33 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface ProfileUpdatePayload {
+  fullName?: string;
+  avatar?: string;
+  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+  phone?: string;
+  address?: {
+    line1?: string;
+    city?: string;
+    pincode?: string;
+    country?: string;
+  };
+}
+
+export interface ProfileResponse {
+  success: boolean;
+  user: AuthUser;
+  message?: string;
+}
+
 // ── Auth API calls ────────────────────────────────────────────────────────
 
 export async function registerUser(payload: RegisterPayload): Promise<AuthResponse> {
   try {
     const { data } = await api.post<AuthResponse>('/ft/auth/register', payload);
-    console.log('[authService] registerUser → success:', JSON.stringify(data, null, 2));
     return data;
   } catch (err: any) {
-    console.error('[authService] registerUser → full URL attempted:', `${api.defaults.baseURL}/ft/auth/register`);
+    console.error('[authService] registerUser error:', err?.message);
     throw err;
   }
 }
@@ -44,10 +77,30 @@ export async function registerUser(payload: RegisterPayload): Promise<AuthRespon
 export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
   try {
     const { data } = await api.post<AuthResponse>('/ft/auth/login', payload);
-    console.log('[authService] loginUser → success:', JSON.stringify(data, null, 2));
     return data;
   } catch (err: any) {
-    console.error('[authService] loginUser → full URL attempted:', `${api.defaults.baseURL}/ft/auth/login`);
+    console.error('[authService] loginUser error:', err?.message);
     throw err;
   }
 }
+
+export async function getProfile(): Promise<ProfileResponse> {
+  try {
+    const { data } = await api.get<ProfileResponse>('/ft/users/profile');
+    return data;
+  } catch (err: any) {
+    console.error('[authService] getProfile error:', err?.message);
+    throw err;
+  }
+}
+
+export async function updateProfile(payload: ProfileUpdatePayload): Promise<ProfileResponse> {
+  try {
+    const { data } = await api.put<ProfileResponse>('/ft/users/profile', payload);
+    return data;
+  } catch (err: any) {
+    console.error('[authService] updateProfile error:', err?.message);
+    throw err;
+  }
+}
+

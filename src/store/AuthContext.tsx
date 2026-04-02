@@ -3,28 +3,30 @@ import React, {
   useEffect, useCallback, ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { registerUser, loginUser } from '../services/authService';
-import type { AuthUser, RegisterPayload, LoginPayload } from '../services/authService';
+import { registerUser, loginUser, getProfile, updateProfile } from '../services/authService';
+import type { AuthUser, RegisterPayload, LoginPayload, ProfileUpdatePayload } from '../services/authService';
 
 // ── Shape ────────────────────────────────────────────────────────────────
 interface AuthState {
   user: AuthUser | null;
   token: string | null;
   isAuthenticated: boolean;
-  isLoading: boolean;          // true while reading AsyncStorage on boot
-  login:    (payload: LoginPayload)    => Promise<void>;
+  isLoading: boolean;
+  login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
-  logout:   () => Promise<void>;
+  logout: () => Promise<void>;
+  refreshProfile: () => Promise<AuthUser>;
+  updateUserInfo: (payload: ProfileUpdatePayload) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
 const TOKEN_KEY = 'auth_token';
-const USER_KEY  = 'auth_user';
+const USER_KEY = 'auth_user';
 
 // ── Provider ─────────────────────────────────────────────────────────────
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user,  setUser]  = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -71,17 +73,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const refreshProfile = useCallback(async () => {
+    const res = await getProfile();
+    await AsyncStorage.setItem(USER_KEY, JSON.stringify(res.user));
+    setUser(res.user);
+    return res.user;
+  }, []);
+
+  const updateUserInfo = useCallback(async (payload: ProfileUpdatePayload) => {
+    const res = await updateProfile(payload);
+    await AsyncStorage.setItem(USER_KEY, JSON.stringify(res.user));
+    setUser(res.user);
+  }, []);
+
   return (
     <AuthContext.Provider value={{
       user, token,
       isAuthenticated: !!token,
       isLoading,
       login, register, logout,
+      refreshProfile, updateUserInfo,
     }}>
       {children}
     </AuthContext.Provider>
   );
 }
+
 
 // ── Hook ─────────────────────────────────────────────────────────────────
 export function useAuth(): AuthState {

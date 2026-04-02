@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useTheme } from '../../../store/ThemeContext';
 
 interface StatCardProps {
   label: string;
@@ -13,23 +14,25 @@ interface StatCardProps {
 }
 
 export function StatCard({ label, value, sub, icon, iconColor, iconBg, trend }: StatCardProps) {
+  const { colors } = useTheme();
+
   return (
-    <View style={s.card}>
+    <View style={[s.card, { backgroundColor: colors.bgCard }]}>
       <View style={[s.iconWrap, { backgroundColor: iconBg }]}>
         <MaterialCommunityIcons name={icon as any} size={20} color={iconColor} />
       </View>
-      <Text style={s.label}>{label}</Text>
-      <Text style={s.value}>{value}</Text>
+      <Text style={[s.label, { color: colors.textMuted }]}>{label}</Text>
+      <Text style={[s.value, { color: colors.textPrimary }]}>{value}</Text>
       <View style={s.row}>
-        {sub && <Text style={s.sub}>{sub}</Text>}
+        {sub && <Text style={[s.sub, { color: colors.textMuted }]}>{sub}</Text>}
         {trend && (
-          <View style={[s.trend, { backgroundColor: trend.up ? '#0D2E1B' : '#2E0D0D' }]}>
+          <View style={[s.trend, { backgroundColor: trend.up ? colors.successBg : colors.failedBg }]}>
             <MaterialCommunityIcons
               name={trend.up ? 'trending-up' : 'trending-down'}
               size={12}
-              color={trend.up ? '#34D399' : '#F87171'}
+              color={trend.up ? colors.successFg : colors.failedFg}
             />
-            <Text style={[s.trendText, { color: trend.up ? '#34D399' : '#F87171' }]}>
+            <Text style={[s.trendText, { color: trend.up ? colors.successFg : colors.failedFg }]}>
               {trend.value}
             </Text>
           </View>
@@ -41,7 +44,6 @@ export function StatCard({ label, value, sub, icon, iconColor, iconBg, trend }: 
 
 const s = StyleSheet.create({
   card: {
-    backgroundColor: '#111C2E',
     borderRadius: 16,
     padding: 18,
     flex: 1,
@@ -56,7 +58,6 @@ const s = StyleSheet.create({
   },
   label: {
     fontSize: 11,
-    color: '#7A8499',
     fontWeight: '500',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
@@ -64,7 +65,6 @@ const s = StyleSheet.create({
   value: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#FFFFFF',
     marginTop: 4,
     letterSpacing: -0.5,
   },
@@ -76,7 +76,6 @@ const s = StyleSheet.create({
   },
   sub: {
     fontSize: 11,
-    color: '#4A5568',
   },
   trend: {
     flexDirection: 'row',

@@ -9,6 +9,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/types';
 import { useAuth } from '../../store/AuthContext';
+import { useTheme } from '../../store/ThemeContext';
 
 type NavProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -16,6 +17,7 @@ interface Props { navigation: NavProp }
 
 export default function LoginScreen({ navigation }: Props) {
   const { login } = useAuth();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
@@ -29,7 +31,6 @@ export default function LoginScreen({ navigation }: Props) {
     try {
       setLoading(true);
       await login({ email: email.trim().toLowerCase(), password });
-      // Token stored → RootNavigator automatically switches to BottomTabs
     } catch (err: any) {
       Alert.alert('Login Failed', err.message);
     } finally {
@@ -39,33 +40,36 @@ export default function LoginScreen({ navigation }: Props) {
 
   return (
     <KeyboardAvoidingView
-      style={s.root}
+      style={[s.root, { backgroundColor: colors.bgBase }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#0B1120" />
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.bgBase}
+      />
 
       <View style={[s.inner, { paddingTop: insets.top + 48, paddingBottom: insets.bottom + 32 }]}>
         {/* Logo */}
         <View style={s.logoWrap}>
-          <View style={s.logoIcon}>
-            <MaterialCommunityIcons name="currency-inr" size={36} color="#4F8EF7" />
+          <View style={[s.logoIcon, { backgroundColor: colors.bgCard }]}>
+            <MaterialCommunityIcons name="currency-inr" size={36} color={colors.accent} />
           </View>
-          <Text style={s.logoText}>FinFlow</Text>
-          <Text style={s.tagline}>Smart money. Zero friction.</Text>
+          <Text style={[s.logoText, { color: colors.textPrimary }]}>FinFlow</Text>
+          <Text style={[s.tagline, { color: colors.textMuted }]}>Smart money. Zero friction.</Text>
         </View>
 
         {/* Card */}
-        <View style={s.card}>
-          <Text style={s.heading}>Welcome Back</Text>
-          <Text style={s.sub}>Sign in to your account</Text>
+        <View style={[s.card, { backgroundColor: colors.bgCard, borderColor: colors.borderCard }]}>
+          <Text style={[s.heading, { color: colors.textPrimary }]}>Welcome Back</Text>
+          <Text style={[s.sub, { color: colors.textMuted }]}>Sign in to your account</Text>
 
           {/* Email */}
-          <View style={s.field}>
-            <MaterialCommunityIcons name="email-outline" size={18} color="#4A5568" style={s.fieldIcon} />
+          <View style={[s.field, { backgroundColor: colors.bgInput, borderColor: colors.borderInput }]}>
+            <MaterialCommunityIcons name="email-outline" size={18} color={colors.textMuted} style={s.fieldIcon} />
             <TextInput
-              style={s.input}
+              style={[s.input, { color: colors.textSecondary }]}
               placeholder="Email address"
-              placeholderTextColor="#4A5568"
+              placeholderTextColor={colors.textMuted}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -76,12 +80,12 @@ export default function LoginScreen({ navigation }: Props) {
           </View>
 
           {/* Password */}
-          <View style={s.field}>
-            <MaterialCommunityIcons name="lock-outline" size={18} color="#4A5568" style={s.fieldIcon} />
+          <View style={[s.field, { backgroundColor: colors.bgInput, borderColor: colors.borderInput }]}>
+            <MaterialCommunityIcons name="lock-outline" size={18} color={colors.textMuted} style={s.fieldIcon} />
             <TextInput
-              style={s.input}
+              style={[s.input, { color: colors.textSecondary }]}
               placeholder="Password"
-              placeholderTextColor="#4A5568"
+              placeholderTextColor={colors.textMuted}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPwd}
@@ -90,33 +94,33 @@ export default function LoginScreen({ navigation }: Props) {
               onSubmitEditing={handleLogin}
             />
             <TouchableOpacity onPress={() => setShowPwd(v => !v)}>
-              <MaterialCommunityIcons name={showPwd ? 'eye-off' : 'eye'} size={18} color="#4A5568" />
+              <MaterialCommunityIcons name={showPwd ? 'eye-off' : 'eye'} size={18} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
 
           {/* Forgot */}
           <TouchableOpacity style={s.forgot} activeOpacity={0.7}>
-            <Text style={s.forgotText}>Forgot password?</Text>
+            <Text style={[s.forgotText, { color: colors.textLink }]}>Forgot password?</Text>
           </TouchableOpacity>
 
           {/* Sign In */}
           <TouchableOpacity
-            style={[s.btn, loading && s.btnDisabled]}
+            style={[s.btn, { backgroundColor: colors.accent }, loading && s.btnDisabled]}
             onPress={handleLogin}
             activeOpacity={0.85}
             disabled={loading}
           >
             {loading
-              ? <ActivityIndicator color="#fff" />
-              : <Text style={s.btnText}>Sign In</Text>}
+              ? <ActivityIndicator color={colors.accentFg} />
+              : <Text style={[s.btnText, { color: colors.accentFg }]}>Sign In</Text>}
           </TouchableOpacity>
         </View>
 
         {/* Register link */}
         <View style={s.footer}>
-          <Text style={s.footerText}>Don't have an account? </Text>
+          <Text style={[s.footerText, { color: colors.textMuted }]}>Don't have an account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={s.footerLink}>Create one</Text>
+            <Text style={[s.footerLink, { color: colors.textLink }]}>Create one</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -125,24 +129,24 @@ export default function LoginScreen({ navigation }: Props) {
 }
 
 const s = StyleSheet.create({
-  root:    { flex: 1, backgroundColor: '#0B1120' },
+  root:    { flex: 1 },
   inner:   { flex: 1, paddingHorizontal: 24, justifyContent: 'center' },
   logoWrap:{ alignItems: 'center', marginBottom: 40 },
-  logoIcon:{ width: 72, height: 72, borderRadius: 20, backgroundColor: '#111C2E', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
-  logoText:{ fontSize: 32, fontWeight: '800', color: '#FFFFFF', letterSpacing: -1 },
-  tagline: { fontSize: 13, color: '#4A5568', marginTop: 4 },
-  card:    { backgroundColor: '#111C2E', borderRadius: 20, padding: 24, borderWidth: 1, borderColor: '#1A2640' },
-  heading: { fontSize: 22, fontWeight: '700', color: '#FFFFFF', marginBottom: 4 },
-  sub:     { fontSize: 13, color: '#4A5568', marginBottom: 24 },
-  field:   { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0B1120', borderRadius: 12, borderWidth: 1, borderColor: '#1A2640', paddingHorizontal: 14, height: 52, marginBottom: 12 },
+  logoIcon:{ width: 72, height: 72, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  logoText:{ fontSize: 32, fontWeight: '800', letterSpacing: -1 },
+  tagline: { fontSize: 13, marginTop: 4 },
+  card:    { borderRadius: 20, padding: 24, borderWidth: 1 },
+  heading: { fontSize: 22, fontWeight: '700', marginBottom: 4 },
+  sub:     { fontSize: 13, marginBottom: 24 },
+  field:   { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, height: 52, marginBottom: 12 },
   fieldIcon:{ marginRight: 10 },
-  input:   { flex: 1, color: '#E2E8F0', fontSize: 14, paddingVertical: 0 },
+  input:   { flex: 1, fontSize: 14, paddingVertical: 0 },
   forgot:  { alignSelf: 'flex-end', marginBottom: 20, marginTop: 4 },
-  forgotText: { fontSize: 12, color: '#4F8EF7', fontWeight: '600' },
-  btn:     { backgroundColor: '#4F8EF7', borderRadius: 14, height: 52, alignItems: 'center', justifyContent: 'center' },
+  forgotText: { fontSize: 12, fontWeight: '600' },
+  btn:     { borderRadius: 14, height: 52, alignItems: 'center', justifyContent: 'center' },
   btnDisabled: { opacity: 0.6 },
-  btnText: { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
+  btnText: { fontSize: 15, fontWeight: '700', letterSpacing: 0.3 },
   footer:  { flexDirection: 'row', justifyContent: 'center', marginTop: 28 },
-  footerText: { fontSize: 13, color: '#4A5568' },
-  footerLink: { fontSize: 13, color: '#4F8EF7', fontWeight: '700' },
+  footerText: { fontSize: 13 },
+  footerLink: { fontSize: 13, fontWeight: '700' },
 });

@@ -2,46 +2,49 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import type { Transaction } from '../hooks/useDashboard';
-
-const STATUS_CONFIG = {
-  success: { color: '#34D399', bg: '#0D2E1B', icon: 'check-circle-outline' },
-  failed:  { color: '#F87171', bg: '#2E0D0D', icon: 'alert-circle-outline' },
-  pending: { color: '#FBBF24', bg: '#2E250D', icon: 'clock-outline' },
-};
+import { useTheme } from '../../../store/ThemeContext';
 
 interface Props {
   data: Transaction[];
 }
 
 export function RecentActivity({ data }: Props) {
+  const { colors } = useTheme();
+
+  const STATUS_CONFIG = {
+    success: { color: colors.successFg, bg: colors.successBg, icon: 'check-circle-outline' },
+    failed:  { color: colors.failedFg,  bg: colors.failedBg,  icon: 'alert-circle-outline' },
+    pending: { color: colors.pendingFg, bg: colors.pendingBg, icon: 'clock-outline' },
+  };
+
   return (
-    <View style={s.card}>
+    <View style={[s.card, { backgroundColor: colors.bgCard }]}>
       <View style={s.header}>
-        <Text style={s.title}>Recent Activity</Text>
+        <Text style={[s.title, { color: colors.textPrimary }]}>Recent Activity</Text>
         <TouchableOpacity activeOpacity={0.7}>
-          <Text style={s.seeAll}>See All</Text>
+          <Text style={[s.seeAll, { color: colors.textLink }]}>See All</Text>
         </TouchableOpacity>
       </View>
 
       {data.map((item, idx) => {
         const cfg = STATUS_CONFIG[item.status];
         return (
-          <View key={item.id} style={[s.row, idx < data.length - 1 && s.separator]}>
+          <View key={item.id} style={[s.row, idx < data.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.borderSep }]}>
             <View style={[s.iconWrap, { backgroundColor: cfg.bg }]}>
               <MaterialCommunityIcons name={cfg.icon as any} size={18} color={cfg.color} />
             </View>
             <View style={s.info}>
-              <Text style={s.txTitle} numberOfLines={1}>{item.title}</Text>
+              <Text style={[s.txTitle, { color: colors.textSecondary }]} numberOfLines={1}>{item.title}</Text>
               <View style={s.meta}>
                 <View style={[s.badge, { backgroundColor: cfg.bg }]}>
                   <Text style={[s.badgeText, { color: cfg.color }]}>
                     {item.status.toUpperCase()}
                   </Text>
                 </View>
-                <Text style={s.time}>{item.time}</Text>
+                <Text style={[s.time, { color: colors.textMuted }]}>{item.time}</Text>
               </View>
             </View>
-            <Text style={[s.amount, { color: item.type === 'credit' ? '#34D399' : '#F1F5F9' }]}>
+            <Text style={[s.amount, { color: item.type === 'credit' ? colors.successFg : colors.textSecondary }]}>
               {item.amount}
             </Text>
           </View>
@@ -53,7 +56,6 @@ export function RecentActivity({ data }: Props) {
 
 const s = StyleSheet.create({
   card: {
-    backgroundColor: '#111C2E',
     borderRadius: 16,
     padding: 18,
     marginBottom: 16,
@@ -67,21 +69,15 @@ const s = StyleSheet.create({
   title: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
   },
   seeAll: {
     fontSize: 12,
-    color: '#4F8EF7',
     fontWeight: '600',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
-  },
-  separator: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#1A2640',
   },
   iconWrap: {
     width: 38,
@@ -98,7 +94,6 @@ const s = StyleSheet.create({
   txTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#E2E8F0',
   },
   meta: {
     flexDirection: 'row',
@@ -117,7 +112,6 @@ const s = StyleSheet.create({
   },
   time: {
     fontSize: 11,
-    color: '#4A5568',
   },
   amount: {
     fontSize: 13,

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View, ViewStyle } from 'react-native';
+import { useTheme } from '../../../store/ThemeContext';
 
 interface SkeletonProps {
   width?: number | string;
@@ -9,6 +10,7 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ width = '100%', height = 16, borderRadius = 8, style }: SkeletonProps) {
+  const { colors } = useTheme();
   const shimmer = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -24,14 +26,15 @@ export function Skeleton({ width = '100%', height = 16, borderRadius = 8, style 
 
   return (
     <Animated.View
-      style={[{ width: width as number, height, borderRadius, opacity, backgroundColor: '#1E2D45' }, style]}
+      style={[{ width: width as number, height, borderRadius, opacity, backgroundColor: colors.bgSkeleton }, style]}
     />
   );
 }
 
 export function SkeletonCard() {
+  const { colors } = useTheme();
   return (
-    <View style={sk.card}>
+    <View style={[sk.card, { backgroundColor: colors.bgCard }]}>
       <Skeleton width={100} height={12} borderRadius={6} />
       <Skeleton width={140} height={28} borderRadius={8} style={{ marginTop: 10 }} />
       <Skeleton width={80} height={10} borderRadius={5} style={{ marginTop: 8 }} />
@@ -40,8 +43,9 @@ export function SkeletonCard() {
 }
 
 export function SkeletonChart() {
+  const { colors } = useTheme();
   return (
-    <View style={sk.chartCard}>
+    <View style={[sk.chartCard, { backgroundColor: colors.bgCard }]}>
       <Skeleton width={160} height={14} borderRadius={7} />
       <View style={sk.bars}>
         {[60, 90, 50, 100, 70, 40, 80].map((h, i) => (
@@ -67,13 +71,11 @@ export function SkeletonActivity() {
 
 const sk = StyleSheet.create({
   card: {
-    backgroundColor: '#111C2E',
     borderRadius: 16,
     padding: 20,
     flex: 1,
   },
   chartCard: {
-    backgroundColor: '#111C2E',
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -90,7 +92,5 @@ const sk = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1A2640',
   },
 });
