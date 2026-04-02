@@ -31,7 +31,7 @@ export default function DashboardScreen() {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View>
-          <Text style={styles.greeting}>Good Morning 👋</Text>
+          <Text style={styles.greeting}>Good Morning</Text>
           <Text style={styles.orgName}>FinFlow Dashboard</Text>
         </View>
         <TouchableOpacity style={styles.notifBtn} activeOpacity={0.8}>

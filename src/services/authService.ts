@@ -31,11 +31,23 @@ export interface LoginPayload {
 // ── Auth API calls ────────────────────────────────────────────────────────
 
 export async function registerUser(payload: RegisterPayload): Promise<AuthResponse> {
-  const { data } = await api.post<AuthResponse>('/api/ft/auth/register', payload);
-  return data;
+  try {
+    const { data } = await api.post<AuthResponse>('/ft/auth/register', payload);
+    console.log('[authService] registerUser → success:', JSON.stringify(data, null, 2));
+    return data;
+  } catch (err: any) {
+    console.error('[authService] registerUser → full URL attempted:', `${api.defaults.baseURL}/ft/auth/register`);
+    throw err;
+  }
 }
 
 export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
-  const { data } = await api.post<AuthResponse>('/api/ft/auth/login', payload);
-  return data;
+  try {
+    const { data } = await api.post<AuthResponse>('/ft/auth/login', payload);
+    console.log('[authService] loginUser → success:', JSON.stringify(data, null, 2));
+    return data;
+  } catch (err: any) {
+    console.error('[authService] loginUser → full URL attempted:', `${api.defaults.baseURL}/ft/auth/login`);
+    throw err;
+  }
 }
