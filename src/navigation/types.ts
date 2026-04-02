@@ -5,3 +5,8 @@ export type BottomTabParamList = {
   Alerts: undefined;
   Settings: undefined;
 };
+
+export type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
+};
